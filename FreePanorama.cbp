@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="FreePanorama" />
+		<Option pch_mode="2" />
+		<Option compiler="mingw64_from_devcpp" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/FreePanorama" prefix_auto="1" extension_auto="1" />
+				<Option object_output="bin/obj_Debug/" />
+				<Option type="1" />
+				<Option compiler="mingw64_from_devcpp" />
+				<Compiler>
+					<Add option="-m64" />
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add option="-m64" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/FreePanorama" prefix_auto="1" extension_auto="1" />
+				<Option object_output="bin/obj_Release/" />
+				<Option type="0" />
+				<Option compiler="mingw64_from_devcpp" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Linker>
+			<Add library="gdi32" />
+			<Add library="user32" />
+			<Add library="kernel32" />
+			<Add library="comctl32" />
+			<Add library="tiff/libtiff_a.a" />
+		</Linker>
+		<Unit filename="main.cpp" />
+		<Unit filename="panfile.cpp" />
+		<Unit filename="panfile.h" />
+		<Unit filename="unittest.cpp" />
+		<Unit filename="unittest.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
