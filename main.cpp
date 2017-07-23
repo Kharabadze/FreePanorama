@@ -7,6 +7,9 @@
 #include <tchar.h>
 #include <windows.h>
 #include"unittest.h"
+#include"engine.h"
+
+engine_t en;
 
 /*  Declare Windows procedure  */
 LRESULT CALLBACK WindowProcedure (HWND, UINT, WPARAM, LPARAM);
@@ -22,6 +25,9 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     //--- Start debug
     unittest();
     //--- Finish debug
+    //--- Start loading
+    en.pf.load("L439.pan");
+    //--- Finish loading
 
     HWND hwnd;               /* This is the handle for our window */
     MSG messages;            /* Here messages to the application are saved */
@@ -90,6 +96,9 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
         case WM_DESTROY:
             PostQuitMessage (0);       /* send a WM_QUIT to the message queue */
             break;
+		case WM_PAINT:
+			en.on_draw(&hwnd);
+			break;
         default:                      /* for messages that we don't deal with */
             return DefWindowProc (hwnd, message, wParam, lParam);
     }

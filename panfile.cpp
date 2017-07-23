@@ -3,109 +3,15 @@
 #include<stdio.h>
 #include<string.h>
 
-//#include"tiff/tiff.h"
-//#include"tiff/tiffio.h"
+#include"tiffile.h"
 
 FILE *special_file=0;
 long long start_pos = 0;
 long long finish_pos = 0;
-/*
-tsize_t special_read(thandle_t st,tdata_t buffer,tsize_t size){
-    long long bytes_read = fread(buffer,1,size,special_file);
-    long long curpos = ftell(special_file);
-    if (curpos > finish_pos){
-        bytes_read -= curpos - finish_pos;
-        fseek(special_file,finish_pos,SEEK_SET);
-    }
-    return bytes_read;
-};
-
-tsize_t special_write(thandle_t st,tdata_t buffer,tsize_t size){
-    //Not Implemented :)
-    return 0;
-};
-
-int special_close(thandle_t){
-    fseek(special_file,finish_pos,SEEK_SET);
-    return 0;
-};
-
-toff_t special_seek(thandle_t st,toff_t pos, int whence){
-    if (pos == 0xFFFFFFFF)
-       return 0xFFFFFFFF;
-    switch (whence) {
-        case SEEK_SET: {
-            fseek(special_file,start_pos+pos,SEEK_SET);
-            break;
-        }
-        case SEEK_CUR: {
-            fseek(special_file,pos,SEEK_CUR);
-            break;
-        }
-        case SEEK_END: {
-            fseek(special_file,finish_pos+pos,SEEK_SET);
-            break;
-        }
-    }
-
-    //=== correct
-    long long curpos = ftell(special_file);
-    if (curpos > finish_pos){
-        fseek(special_file,finish_pos,SEEK_SET);
-        curpos = finish_pos;
-    }
-    if (curpos < start_pos){
-        fseek(special_file,start_pos,SEEK_SET);
-        curpos = start_pos;
-    }
-    curpos-=start_pos;
-
-    return curpos;
-};
-
-toff_t special_size(thandle_t st){
-    return (finish_pos-start_pos);
-};
-
-int special_map(thandle_t, tdata_t*, toff_t*){
-    return 0;
-};
-
-void special_unmap(thandle_t, tdata_t, toff_t){
-    return;
-};
-*/
-int decode(unsigned char * &buf,FILE *f,int len){
-    start_pos = ftell(f);
-    finish_pos = start_pos + len;
-
-    //--- Start decoding
-    special_file = f;
-/*
-    TIFF* tif = TIFFClientOpen(
-    "Memory", "r", (thandle_t)0,
-    special_read, special_write, special_seek,
-    special_close, special_size,
-    special_map, special_unmap);
-
-
-    unsigned char *temp = new unsigned char [len];
-*/
-    //--- Finish decoding
-
-
-    //if(fread(*temp,1,comp_size,f)!=comp_size)break;
-    //debug saving
-    //FILE *debf=fopen("test.tif","wb");
-    //fwrite(*temp,1,comp_size,debf);
-    //fclose(debf);
-
-    fseek(f,finish_pos,SEEK_SET);
-    return 0;
-}
 
 
 int panfile_t::load(const char *filename){
+    width = 0;
     u=d=f=b=l=r=0;//Empty pointers
     FILE *fi=fopen(filename,"rb");
 
@@ -152,21 +58,33 @@ int panfile_t::load(const char *filename){
             //if(comp_size!=uncomp_size)break;//Only uncompressed file
 
             unsigned char **temp=0;
+            int new_pointer = ftell(fi)+comp_size;
             if(!strcmp(loc_filename,"u.tif")){
-                decode(u,fi,comp_size);
+                tf.decode(fi,comp_size,u,'u');
+                if(tf.width!=tf.height)printf("Only Square TIFF!\n");
+                if(width==0)width=tf.width;
             }else if(!strcmp(loc_filename,"d.tif")){
-                decode(d,fi,comp_size);
+                tf.decode(fi,comp_size,d,'d');
+                if(tf.width!=tf.height)printf("Only Square TIFF!\n");
+                if(width==0)width=tf.width;
             }else if(!strcmp(loc_filename,"f.tif")){
-                decode(f,fi,comp_size);
+                tf.decode(fi,comp_size,f,'f');
+                if(tf.width!=tf.height)printf("Only Square TIFF!\n");
+                if(width==0)width=tf.width;
             }else if(!strcmp(loc_filename,"b.tif")){
-                decode(b,fi,comp_size);
+                tf.decode(fi,comp_size,b,'b');
+                if(tf.width!=tf.height)printf("Only Square TIFF!\n");
+                if(width==0)width=tf.width;
             }else if(!strcmp(loc_filename,"l.tif")){
-                decode(l,fi,comp_size);
+                tf.decode(fi,comp_size,l,'l');
+                if(tf.width!=tf.height)printf("Only Square TIFF!\n");
+                if(width==0)width=tf.width;
             }else if(!strcmp(loc_filename,"r.tif")){
-                decode(r,fi,comp_size);
-            }else{
-                fseek(fi,comp_size,SEEK_CUR);
-            }
+                tf.decode(fi,comp_size,r,'r');
+                if(tf.width!=tf.height)printf("Only Square TIFF!\n");
+                if(width==0)width=tf.width;
+            }else{;}
+            fseek(fi,new_pointer,SEEK_SET);
         }else if(header==0x08074b50){//After-File info
             unsigned char c=0;
             for(int i=0;i<12;i++){//skip
