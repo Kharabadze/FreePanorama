@@ -79,19 +79,30 @@ void engine_t::on_draw(HWND *hWnd){
         for(int x=0;x<width;x++){
             coord[0]=coordA[0]+rez_h_x[x];
             coord[2]=coordA[2]+rez_h_z[x];
+
+            //--- Artefact remove
             int loop = 0;
+            //int saved_colors[3];
+            //int *saco=saved_colors;
+
             while(1){
                 float xf = coord[coordshift[0]];
                 float yf = coord[coordshift[1]];
                 float zf = coord[coordshift[2]];
-                float coef = pf.width*0.4999f/zf;
-                int xi=int(xf*coef + pf.width*0.5f + 0.5f);
-                int yi=int(yf*coef + pf.width*0.5f + 0.5f);
+                float coef = pf.width*0.5f/zf;
+                int xi=int(xf*coef + pf.width*0.5f );
+                int yi=int(yf*coef + pf.width*0.5f );
                 //int xi = x; int yi = y;
                 if((xi>=0)&&(xi<pf.width)&&(yi>=0)&&(yi<pf.width)){
                     *cur_pix = pictar[(zf<0)?0:1][yi*pf.width+xi];
                     break;
                 }else{
+                    //Artefact remove
+                    //int xart=xi,yart=yi;
+                    //if(xart<0)xart=0;if(xart>=pf.width)xart=pf.width-1;
+                    //if(yart<0)yart=0;if(yart>=pf.width)yart=pf.width-1;
+                    //*(saco++) = pictar[(zf<0)?0:1][yart*pf.width+xart];
+
                     unsigned int *temp;
                     temp=pictar[0];pictar[0]=pictar[2];pictar[2]=pictar[4];pictar[4]=temp;
                     temp=pictar[1];pictar[1]=pictar[3];pictar[3]=pictar[5];pictar[5]=temp;
@@ -100,7 +111,18 @@ void engine_t::on_draw(HWND *hWnd){
                     coordshift[1]=coordshift[2];
                     coordshift[2]=ctemp;
                     if(++loop==3){
-                        *cur_pix = 0xff3456;
+                        *cur_pix = 0xff3456;//Show Artefact
+
+                        //Artefact remove
+                        //int r=0,g=0,b=0;
+                        //for(int i=0;i<3;i++){
+                        //    r+=saved_colors[i]&0xff;
+                        //    g+=(saved_colors[i]>>8)&0xff;
+                        //    b+=(saved_colors[i]>>16)&0xff;
+                        //}
+                        //r/=3;g/=3;b/=3;
+                        //*cur_pix = (b<<16)|(g<<8)|r;
+
                         break;
                     }
                 }
