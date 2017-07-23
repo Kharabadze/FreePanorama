@@ -99,9 +99,19 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 		case WM_PAINT:
 			en.on_draw(&hwnd);
 			break;
+        case WM_MOUSEWHEEL:
+            en.on_mouse_wheel(GET_WHEEL_DELTA_WPARAM(wParam));//WHEEL_DELTA
+            break;
+        case WM_SIZE:
+            en.need_redraw = true;
+            break;
         default:                      /* for messages that we don't deal with */
             return DefWindowProc (hwnd, message, wParam, lParam);
     }
+    //--- If need redraw - redraw
+    if(en.need_redraw)
+        InvalidateRect(hwnd,NULL,false);
+    en.need_redraw=false;
 
     return 0;
 }

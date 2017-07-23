@@ -15,6 +15,10 @@ void engine_t::on_draw(HWND *hWnd){
 	int width=my_rect.right-my_rect.left;
 	int height=my_rect.bottom-my_rect.top;
 
+	// Length calculation
+	float rlength = sqrt(width*height);
+	float r = rlength * pow(2.0f, rrr / 12.0f);
+
     int newsize=width*height;
     if(newsize>buffersize){
         if((buffer!=0)&&(buffersize!=0))delete[]buffer;
@@ -144,7 +148,9 @@ void engine_t::on_mouse_move(int x,int y){
 void engine_t::on_mouse_button(int x,int y){
     return;
 }
-void engine_t::on_mouse_wheel(int r){
+void engine_t::on_mouse_wheel(int rot){
+    rrr+=rot/120;
+    need_redraw=true;
     return;
 }
 
@@ -154,7 +160,7 @@ engine_t::engine_t(){
     buffer=0;
     theta = 0.3;
     phi = 3.14/2;
-    r = 100;
+    rrr = 0;
     return;
 }
 engine_t::~engine_t(){
