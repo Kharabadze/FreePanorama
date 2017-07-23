@@ -2,6 +2,34 @@
 
 
 #include<math.h>
+void engine_t::calculate_matrix(void){
+    float rlength = sqrt(width*height);
+	float r = rlength * pow(2.0f, rrr / 12.0f);
+
+    //--- calc
+    sin_phi = sin(phi);
+    cos_phi = cos(phi);
+    sin_theta = sin(theta);
+    cos_theta = cos(theta);
+
+    mat_xx=cos_phi;
+    mat_xy=sin_phi*sin_theta;
+    mat_xz=sin_phi*cos_theta;
+
+    mat_yx=0.0f;
+    mat_yy=cos_theta;
+    mat_yz=-sin_theta;
+
+    mat_zx=-sin_phi;
+    mat_zy=cos_phi*sin_theta;
+    mat_zz=cos_phi*cos_theta;
+
+    rez_0_x=-mat_xz*r;
+    rez_0_y=-mat_yz*r;
+    rez_0_z=-mat_zz*r;
+
+    return;
+}
 
 void engine_t::on_draw(HWND *hWnd){
 	PAINTSTRUCT ps;
@@ -12,12 +40,10 @@ void engine_t::on_draw(HWND *hWnd){
 	RECT my_rect;//Size of window
 	GetClientRect(*hWnd,&my_rect);
 
-	int width=my_rect.right-my_rect.left;
-	int height=my_rect.bottom-my_rect.top;
+	width=my_rect.right-my_rect.left;
+	height=my_rect.bottom-my_rect.top;
 
 	// Length calculation
-	float rlength = sqrt(width*height);
-	float r = rlength * pow(2.0f, rrr / 12.0f);
 
     int newsize=width*height;
     if(newsize>buffersize){
@@ -25,28 +51,9 @@ void engine_t::on_draw(HWND *hWnd){
         buffersize=newsize*2;//Double it :)
         buffer=new unsigned int[buffersize];
     }
-    unsigned char copter=0b000110;
-    //--- calc
-    float sin_phi = sin(phi);
-    float cos_phi = cos(phi);
-    float sin_theta = sin(theta);
-    float cos_theta = cos(theta);
 
-    float mat_xx=cos_phi;
-    float mat_xy=sin_phi*sin_theta;
-    float mat_xz=sin_phi*cos_theta;
-
-    float mat_yx=0.0f;
-    float mat_yy=cos_theta;
-    float mat_yz=-sin_theta;
-
-    float mat_zx=-sin_phi;
-    float mat_zy=cos_phi*sin_theta;
-    float mat_zz=cos_phi*cos_theta;
-
-    float rez_0_x=-mat_xz*r;
-    float rez_0_y=-mat_yz*r;
-    float rez_0_z=-mat_zz*r;
+    //float rlength = sqrt(width*height);
+    calculate_matrix();
 
     for(int i=0;i<width;i++){
         float xr = i-width*0.5f+0.5f;
@@ -143,9 +150,73 @@ void engine_t::on_draw(HWND *hWnd){
     return;
 }
 void engine_t::on_mouse_move(int x,int y){
+    float xr = x-width*0.5f+0.5f;
+    float yr = y-height*0.5f+0.5f;
+
+    float step = 0.15;//Rad
+    while(step>0.00001){
+        float old_theta = theta;
+        float old_phi = phi;
+        int mini=0,minj=0;
+        float minrez = 10000.0f;
+        for(int i=-1;i<=1;i++){
+            phi = old_phi+step*i;
+            if(phi>M_PI)phi-=2*M_PI;
+            if(phi<-M_PI)phi+=2*M_PI;
+            for(int j=-1;j<=1;j++){
+                theta = old_theta+step*j;
+                if(theta>M_PI*0.5){theta=M_PI-theta;phi+=M_PI;}
+                if(theta<-M_PI*0.5){theta=-M_PI-theta;phi+=M_PI;}
+                if(phi>M_PI)phi-=2*M_PI;
+
+                calculate_matrix();
+                float new_x = mat_xx * xr + mat_xy * yr + rez_0_x;
+                float new_y = mat_yx * xr + mat_yy * yr + rez_0_y;
+                float new_z = mat_zx * xr + mat_zy * yr + rez_0_z;
+                float norm = sqrt(new_x*new_x +
+                    new_y*new_y + new_z*new_z);
+                new_x /= norm;
+                new_y /= norm;
+                new_z /= norm;
+                float d_x = new_x-fixed_x;
+                float d_y = new_y-fixed_y;
+                float d_z = new_z-fixed_z;
+                float diff = d_x*d_x+d_y*d_y+d_z*d_z;
+                if(diff<minrez){
+                    minrez = diff;
+                    mini=i;
+                    minj=j;
+                }
+            }
+        }
+        if((mini==0)&&(minj==0))step*=0.3;
+        else{
+            phi = old_phi+step*mini;
+            if(phi>M_PI)phi-=2*M_PI;
+            if(phi<-M_PI)phi+=2*M_PI;
+            theta = old_theta+step*minj;
+            if(theta>M_PI*0.5){theta=M_PI-theta;phi+=M_PI;}
+            if(theta<-M_PI*0.5){theta=-M_PI-theta;phi+=M_PI;}
+            if(phi>M_PI)phi-=2*M_PI;
+            step*=0.98;
+        }
+    }
+    need_redraw=true;
     return;
 }
 void engine_t::on_mouse_button(int x,int y){
+    float xr = x-width*0.5f+0.5f;
+    float yr = y-height*0.5f+0.5f;
+
+    calculate_matrix();
+    fixed_x = mat_xx * xr + mat_xy * yr + rez_0_x;
+    fixed_y = mat_yx * xr + mat_yy * yr + rez_0_y;
+    fixed_z = mat_zx * xr + mat_zy * yr + rez_0_z;
+    float norm = sqrt(fixed_x*fixed_x+
+        fixed_y*fixed_y+fixed_z*fixed_z);
+    fixed_x/=norm;
+    fixed_y/=norm;
+    fixed_z/=norm;
     return;
 }
 void engine_t::on_mouse_wheel(int rot){

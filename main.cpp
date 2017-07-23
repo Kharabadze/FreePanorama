@@ -25,9 +25,6 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     //--- Start debug
     unittest();
     //--- Finish debug
-    //--- Start loading
-    en.pf.load("L439.pan");
-    //--- Finish loading
 
     HWND hwnd;               /* This is the handle for our window */
     MSG messages;            /* Here messages to the application are saved */
@@ -58,7 +55,7 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     hwnd = CreateWindowEx (
            0,                   /* Extended possibilites for variation */
            szClassName,         /* Classname */
-           _T("Code::Blocks Template Windows App"),       /* Title Text */
+           _T("FreePanorama"),       /* Title Text */
            WS_OVERLAPPEDWINDOW, /* default window */
            CW_USEDEFAULT,       /* Windows decides the position */
            CW_USEDEFAULT,       /* where the window ends up on the screen */
@@ -72,6 +69,13 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
 
     /* Make the window visible on the screen */
     ShowWindow (hwnd, nCmdShow);
+
+   	SendMessage(hwnd, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
+
+
+    //--- Start loading
+    en.pf.load("L439.pan");
+    //--- Finish loading
 
     /* Run the message loop. It will run until GetMessage() returns 0 */
     while (GetMessage (&messages, NULL, 0, 0))
@@ -91,6 +95,17 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
 
 LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	RECT myrect;//Size of window
+	GetClientRect(hwnd,&myrect);
+	int maxx=myrect.right-myrect.left;
+	int maxy=myrect.bottom-myrect.top;
+	POINT a;
+	GetCursorPos(&a);
+	ScreenToClient(hwnd,&a);
+	int msx=a.x,msy=a.y;
+	bool inside=((msx>=0)&&(msy>=0)&&(msx<maxx)&&(msy<maxy));
+
+
     switch (message)                  /* handle the messages */
     {
         case WM_DESTROY:
@@ -104,6 +119,16 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             break;
         case WM_SIZE:
             en.need_redraw = true;
+            break;
+        case WM_LBUTTONDOWN:
+            en.on_mouse_button(msx,maxy-1-msy);
+            break;
+        case WM_LBUTTONUP:
+            en.on_mouse_move(msx,maxy-1-msy);
+            break;
+        case WM_MOUSEMOVE:
+            if(wParam&MK_LBUTTON)
+                en.on_mouse_move(msx,maxy-1-msy);
             break;
         default:                      /* for messages that we don't deal with */
             return DefWindowProc (hwnd, message, wParam, lParam);
