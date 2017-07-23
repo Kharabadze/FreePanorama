@@ -97,5 +97,12 @@ int panfile_t::load(const char *filename){
         }else break;//incorrect file
     }
     fclose(fi);
+    not_loaded = false;
     return 0;
+}
+//--- Constructor
+panfile_t::panfile_t(void){
+    not_loaded=true;
+    width = 0;
+    return;
 }

@@ -26,6 +26,7 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     unittest();
     //--- Finish debug
 
+
     HWND hwnd;               /* This is the handle for our window */
     MSG messages;            /* Here messages to the application are saved */
     WNDCLASSEX wincl;        /* Data structure for the windowclass */
@@ -72,10 +73,74 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
 
    	SendMessage(hwnd, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 
+    //--- Start Get filename
+    bool no_argument=false;
+    if(lpszArgument==0)no_argument=true;
+    else if(lpszArgument[0]==0)no_argument=true;
+    if(no_argument){
+        OPENFILENAME ofn;
+        char szFileName[MAX_PATH] = "";
 
-    //--- Start loading
-    en.pf.load("L439.pan");
-    //--- Finish loading
+        ZeroMemory(&ofn, sizeof(ofn));
+
+        ofn.lStructSize = sizeof(ofn); // SEE NOTE BELOW
+        ofn.hwndOwner = hwnd;
+        ofn.lpstrFilter = "Panorama Files (*.pan)\0*.pan\0";
+        ofn.lpstrFile = szFileName;
+        ofn.nMaxFile = MAX_PATH;
+        ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY|OFN_ALLOWMULTISELECT;
+        ofn.lpstrDefExt = "pan";
+
+        if(GetOpenFileName(&ofn)){
+            en.pf.load(szFileName);
+        }else return 0;
+    }else{
+        char *CL = GetCommandLineA();
+        char filename[1024];
+        //MessageBox(NULL, CL, "Test", MB_OK);
+        //--- Parse
+        int uk=0;
+        if(CL[0]=='"'){
+            uk=1;
+            while(1){
+                if(CL[uk]==0)return 0;//ERROR
+                if(CL[uk]=='"')break;
+                uk++;
+            }
+            uk++;
+        }else{
+            while(CL[uk]!=' ')uk++;
+        }
+        while(CL[uk]==' ')uk++;
+
+        int fnuk=0;
+        if(CL[uk]=='"'){
+            uk++;
+            while(1){
+                if(CL[uk]=='"'){
+                    filename[fnuk]=0;
+                    break;
+                }
+                filename[fnuk]=CL[uk];
+                fnuk++;uk++;
+            }
+
+        }else{
+            while(1){
+                if((CL[uk]==' ')||(CL[uk]==0)){
+                    filename[fnuk]=0;
+                    break;
+                }
+                filename[fnuk]=CL[uk];
+                fnuk++;uk++;
+            }
+        }
+        if(fnuk){
+            en.pf.load(filename);
+        }
+        //en.pf.load("L439.pan");
+    }
+    //--- Finish Get Filename
 
     /* Run the message loop. It will run until GetMessage() returns 0 */
     while (GetMessage (&messages, NULL, 0, 0))

@@ -32,6 +32,8 @@ void engine_t::calculate_matrix(void){
 }
 
 void engine_t::on_draw(HWND *hWnd){
+    if(pf.not_loaded)return;//Don't redraw
+
 	PAINTSTRUCT ps;
     ps.fErase=false;
     BeginPaint(*hWnd, &ps);
@@ -251,8 +253,8 @@ void engine_t::on_mouse_wheel(int rot){
 engine_t::engine_t(){
     buffersize=0;
     buffer=0;
-    theta = 0.3;
-    phi = 3.14/2;
+    theta = 0.0;
+    phi = 0.0;
     rrr = 0;
     return;
 }
